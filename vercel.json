@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "crons": [
+    { "path": "/api/cron/price-check", "schedule": "0 */6 * * *" }
+  ],
+  "functions": {
+    "app/api/verdict/route.ts": { "maxDuration": 60 },
+    "app/api/cron/price-check/route.ts": { "maxDuration": 60 }
+  }
+}
