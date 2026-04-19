@@ -1,0 +1,31 @@
+# Netlify build config for Should I Buy This?
+# The official Next.js plugin is auto-installed by Netlify, but we pin it here so
+# nothing drifts. Scheduled function replaces Vercel Cron for the price-check job.
+
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[functions]
+  # chromium is heavy; give server functions the max memory + duration.
+  node_bundler = "esbuild"
+
+[functions."price-check"]
+  # fires every 6 hours — matches the Vercel cron we ship on vercel.json.
+  schedule = "0 */6 * * *"
+
+# keep the service worker served with the right headers
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Content-Type = "application/javascript; charset=utf-8"
+    Cache-Control = "no-cache, no-store, must-revalidate"
+    Service-Worker-Allowed = "/"
+
+[[headers]]
+  for = "/manifest.webmanifest"
+  [headers.values]
+    Content-Type = "application/manifest+json"
