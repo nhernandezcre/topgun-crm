@@ -24,7 +24,7 @@ export function PushEnable() {
     if (!key) return alert("VAPID key missing. Set NEXT_PUBLIC_VAPID_PUBLIC_KEY in env.");
     const sub = await reg.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(key)
+      applicationServerKey: urlBase64ToUint8Array(key).buffer as ArrayBuffer
     });
     await fetch("/api/push/subscribe", {
       method: "POST",
