@@ -13,10 +13,12 @@ const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 export { client as anthropic };
 
+type ClaudeImageMedia = "image/jpeg" | "image/png" | "image/webp" | "image/gif";
+
 /** Extract structured product data from an image (photo or screenshot). */
 export async function extractProductFromImage(input: {
   imageBase64: string;
-  mediaType: "image/jpeg" | "image/png" | "image/webp" | "image/heic";
+  mediaType: ClaudeImageMedia;
   hint?: string;
 }): Promise<ProductExtract> {
   const sys = `You are a product identification engine. Given a photo or a screenshot of a listing, return ONLY a JSON object with these exact keys:

@@ -1,8 +1,10 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { createServerClient } from "@supabase/ssr";
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
 
 // Protect authed routes + keep the Supabase session cookie fresh.
 const PROTECTED = ["/capture", "/history", "/wishlist", "/settings", "/verdict", "/paywall"];
+
+type CookieTriple = { name: string; value: string; options?: CookieOptions };
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
@@ -15,7 +17,7 @@ export async function middleware(req: NextRequest) {
     {
       cookies: {
         getAll: () => req.cookies.getAll(),
-        setAll: (xs) => {
+        setAll: (xs: CookieTriple[]) => {
           for (const { name, value, options } of xs) {
             res.cookies.set(name, value, options);
           }

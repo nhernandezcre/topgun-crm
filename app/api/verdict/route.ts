@@ -132,9 +132,7 @@ export async function POST(req: NextRequest) {
         const priceTask = (async (): Promise<PriceIntel> => {
           const [market, history] = await Promise.all([
             priceCheck(product.raw_query || product.name),
-            asin
-              ? amazonHistory(asin)
-              : Promise.resolve({ trend: "unknown" as const, history: [], fake_sale: false })
+            amazonHistory(asin ?? "")
           ]);
 
           const listed = product.listed_price_cents ?? history.current_cents;
@@ -163,7 +161,7 @@ export async function POST(req: NextRequest) {
           const alts = await recommendAlternatives(product);
           // verify + enrich: each alternative must have a real search result
           const verified = await Promise.all(
-            alts.map(async (a) => {
+            alts.map(async (a): Promise<Alternative | null> => {
               const intel = await priceCheck(a.name);
               const top = intel.offers[0];
               if (!top) return null;
@@ -173,10 +171,10 @@ export async function POST(req: NextRequest) {
                 url,
                 affiliate_url: affiliateWrap(url),
                 price_cents: top.price_cents || a.price_cents
-              } satisfies Alternative;
+              };
             })
           );
-          return verified.filter((x): x is Alternative => !!x).slice(0, 3);
+          return verified.filter((x): x is Alternative => x !== null).slice(0, 3);
         })();
 
         // stream as each resolves
@@ -277,10 +275,12 @@ function bad(msg: string, status = 400) {
   });
 }
 
-function normalizeMedia(t: string): "image/jpeg" | "image/png" | "image/webp" | "image/heic" {
+function normalizeMedia(t: string): "image/jpeg" | "image/png" | "image/webp" | "image/gif" {
+  // Anthropic vision supports jpg/png/gif/webp. iOS HEIC photos become JPEG when
+  // the <input type="file"> picker re-encodes them on upload, so we fall through.
   if (/png/i.test(t)) return "image/png";
   if (/webp/i.test(t)) return "image/webp";
-  if (/heic|heif/i.test(t)) return "image/heic";
+  if (/gif/i.test(t)) return "image/gif";
   return "image/jpeg";
 }
 
